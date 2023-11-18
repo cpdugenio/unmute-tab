@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
 
-  "name": "Tab Muter",
-  "description": "Re-enables the \"Mute Tab\" feature once found in Chrome itself.",
+  "name": "Tab Un-Muter",
+  "description": "Click to unmute for 10 minutes",
   "version": "2.0.0",
   "minimum_chrome_version": "107",
   "author": "Ash Holland",
@@ -10,13 +10,14 @@
   "action": {
     "default_title": "Mute tab",
     "default_icon": {
-      "19": "images/audible-dark-19.png",
-      "38": "images/audible-dark-38.png"
+      "19": "images/audible.png",
+      "38": "images/audible.png"
     }
   },
 
   "permissions": [
-    "storage"
+    "storage",
+    "tabs"
   ],
 
   "background": {
@@ -30,8 +31,8 @@
   },
 
   "icons": {
-    "16": "images/webstore-icon-16.png",
-    "48": "images/webstore-icon-48.png",
-    "128": "images/webstore-icon-128.png"
+    "16": "images/audible.png",
+    "48": "images/audible.png",
+    "128": "images/audible.png"
   }
 }
