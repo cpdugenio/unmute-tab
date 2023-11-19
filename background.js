@@ -82,9 +82,14 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
   if (changeInfo.status == "complete"){
     console.log("Complete")
-    if ((!tab.hasOwnProperty("willUnmute") || !tab.willUnmute) && tab.url.indexOf("https://www.twitch.tv") != -1) {
-      console.log("muting")
+    let sites = [
+      "https://www.twitch.tv",
+      "https://www.youtube.com",
+    ]
+    if ((!tab.hasOwnProperty("willUnmute") || !tab.willUnmute) && sites.some((site) => tab.url.indexOf(site) != -1)) {
       chrome.tabs.update(tab.id, {"muted": true})
+    } else {
+      chrome.tabs.update(tab.id, {"muted": false})
     }
     console.log("hello")
   }
