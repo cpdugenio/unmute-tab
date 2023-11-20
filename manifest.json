@@ -17,7 +17,8 @@
 
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "alarms"
   ],
 
   "background": {

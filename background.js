@@ -1,6 +1,9 @@
 import {getColour, setDebugMode} from './config.js'
 import {error, warn, info, debug} from './debug.js'
 
+// Map of time to id
+let muted = new Map()
+
 // Set the toolbar icon to the audible one.
 function doAudibleIcon(tab) {
   debug(`set icon to audible, tab ${JSON.stringify(tab)}`)
@@ -56,9 +59,17 @@ function toggleMuted(tab) {
   if(isMuted){
     chrome.tabs.update(tab.id, {"muted": !isMuted})
     tab.willUnmute = true
-    setInterval(
-       function(){ chrome.tabs.update(tab.id, {"muted": true}); tab.willUnmute = false; }, 10*60*1000
-    )
+    let mins = 10
+    let timeout = Date.now() + mins*60*1000
+    muted.set(String(tab.id), tab)
+    console.log(Date.now())
+    console.log(timeout)
+    console.log(String(tab.id))
+    chrome.alarms.create(String(tab.id), {delayInMinutes: mins})
+  } else {
+    debug(`unmuting manually`)
+    chrome.tabs.update(tab.id, {"muted": true})
+    tab.willUnmute = false
   }
   // Note: the icon is updated elsewhere (this is to make sure that the
   // icon doesn't get out of sync if the tab mute state is changed by
@@ -74,6 +85,22 @@ chrome.action.onClicked.addListener(tab => {
     warn("couldn't toggle, no tab!")
   }
 })
+
+
+// Unmute when alarm
+function muteTab(tab) {
+   console.log("muting tab")
+   chrome.tabs.update(tab.id, {"muted": true});
+   tab.willUnmute = false 
+}
+
+chrome.alarms.onAlarm.addListener(function(alarm){
+    console.log(alarm)
+    let tabId = alarm.name
+    muteTab(muted.get(tabId))
+    muted.delete(tabId)
+});
+
 
 // Update the icon whenever necessary.
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
