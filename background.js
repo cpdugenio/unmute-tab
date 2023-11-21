@@ -52,24 +52,35 @@ function updateIcon(tab) {
   }
 }
 
+
+function clearTab(tab){
+    console.log("Trying to clear tab")
+    if(muted.delete(String(tab.id))){
+      console.log("Clearing tab")
+      chrome.alarms.clear(String(tab.id), function() {console.log("Cleared tab " + String(tab.id))})
+    }
+}
+
 // Toggle the mute state of a tab.
 function toggleMuted(tab) {
   debug(`toggle mute state, tab ${JSON.stringify(tab)}`)
   let isMuted = tab.mutedInfo.muted
   if(isMuted){
+    console.log("unmuting")
     chrome.tabs.update(tab.id, {"muted": !isMuted})
     tab.willUnmute = true
     let mins = 10
     let timeout = Date.now() + mins*60*1000
     muted.set(String(tab.id), tab)
-    console.log(Date.now())
-    console.log(timeout)
+    console.log(new Date(Date.now()))
+    console.log(new Date(timeout))
     console.log(String(tab.id))
     chrome.alarms.create(String(tab.id), {delayInMinutes: mins})
   } else {
-    debug(`unmuting manually`)
+    console.log("muting")
     chrome.tabs.update(tab.id, {"muted": true})
     tab.willUnmute = false
+    clearTab(tab)
   }
   // Note: the icon is updated elsewhere (this is to make sure that the
   // icon doesn't get out of sync if the tab mute state is changed by
@@ -97,8 +108,12 @@ function muteTab(tab) {
 chrome.alarms.onAlarm.addListener(function(alarm){
     console.log(alarm)
     let tabId = alarm.name
-    muteTab(muted.get(tabId))
-    muted.delete(tabId)
+    if(muted.has(tabId)){
+	    muteTab(muted.get(tabId))
+	    muted.delete(tabId)
+    } else {
+	    console.log("Couldnt find tab")
+    }
 });
 
 
@@ -106,6 +121,9 @@ chrome.alarms.onAlarm.addListener(function(alarm){
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.hasOwnProperty("mutedInfo") || changeInfo.hasOwnProperty("status")) {
     updateIcon(tab)
+  }
+  if (changeInfo.status == "loading" && !changeInfo.hasOwnProperty("url")){
+    clearTab(tab)
   }
   if (changeInfo.status == "complete"){
     console.log("Complete")
@@ -139,3 +157,8 @@ chrome.runtime.onStartup.addListener(() => {
 chrome.runtime.onInstalled.addListener(() => {
   setDebugMode(false)
 })
+
+
+const keepAlive = () => setInterval(chrome.runtime.getPlatformInfo, 20e3);
+chrome.runtime.onStartup.addListener(keepAlive);
+keepAlive();
